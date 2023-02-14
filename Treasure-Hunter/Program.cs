@@ -11,9 +11,11 @@ namespace Treasure_Hunter
     {
         static void Main(string[] args)
         {
+            const int maxHealthOfPlayer = 5;
+            const char playerSymbol = '@';
             bool isOpen = true;
             int posX = 1, posY = 1; // Position of player.
-            char playerSymbol = '@';
+            int healthOfPlayer = maxHealthOfPlayer;
             char[,] mapWithTraps = new char[24, 27]
             {
                 {'#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
@@ -81,16 +83,24 @@ namespace Treasure_Hunter
             while (isOpen)
             {
                 DrawMap(map);
+                DrawBar(map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0), maxHealthOfPlayer, healthOfPlayer, nameOfBar: "Health");
                 Console.SetCursorPosition(posX, posY);
                 Console.Write(playerSymbol);
+                Console.SetCursorPosition(0, 26);
+                Console.Write(healthOfPlayer);
                 if (MoveOfPlayer(map, ref posX, ref posY))
                 {
                     Console.SetCursorPosition(posY, posX);
                     Console.Write(playerSymbol);
+                    if (mapWithTraps[posY, posX] == 'T')
+                    {
+                        ExploudTrap(map, mapWithTraps, posX, posY, ref healthOfPlayer);
+                    }
                 }
                 Console.Clear();
             }
         }
+
 
         static void DrawMap(char[,] map)
         {
@@ -108,7 +118,7 @@ namespace Treasure_Hunter
             }
         }
 
-        static bool SetPlayerOnMap(char[,] map, ref int posX, ref int posY, char playerSymbol = '@')
+        static bool SetPlayerOnMap(char[,] map, ref int posX, ref int posY)
         {
             if ((posX > map.GetUpperBound(map.Rank - 1) || posY > map.GetUpperBound(0)) ||
                 (posX <= 0 || posY <= 0)) return false;
@@ -162,6 +172,35 @@ namespace Treasure_Hunter
                 return true;
             }
             return false;
+        }
+        static void ExploudTrap(char[,] map, char[,] mapWithTraps, int posX, int posY, ref int health)
+        {
+            Console.Beep();
+            map[posY, posX] = '*';
+            mapWithTraps[posY, posX] = ' ';
+            health--;
+        }
+
+        static void DrawBar(int posX, int posY, int maxStatictic, int statictic, string nameOfBar = "", ConsoleColor color = ConsoleColor.Red)
+        {
+            ConsoleColor defaultColor = Console.BackgroundColor;
+            Console.SetCursorPosition(posX, posY);
+            if (nameOfBar != "") Console.Write($" {nameOfBar}: ");
+            Console.Write('[');
+            for (int i = 1; i <= maxStatictic; i++)
+            {
+                if (i > statictic)
+                {
+                    Console.BackgroundColor = defaultColor;
+                }
+                else
+                {
+                    Console.BackgroundColor = color;
+                }
+                Console.Write('|');
+            }
+            Console.BackgroundColor = defaultColor;
+            Console.Write(']');
         }
     }
 }
