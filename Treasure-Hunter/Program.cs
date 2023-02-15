@@ -14,6 +14,7 @@ namespace Treasure_Hunter
             const int maxHealthOfPlayer = 5;
             const char playerSymbol = '@';
             bool isOpen = true;
+            int startPosX, startPosY; // Start position of player.
             int posX = 1, posY = 1; // Position of player.
             int healthOfPlayer = maxHealthOfPlayer;
             char[,] mapWithTraps = new char[24, 27]
@@ -24,19 +25,19 @@ namespace Treasure_Hunter
                 {'#', '#', ' ', 'T', 'T', ' ', ' ', '#', ' ', ' ', '#', ' ', ' ', ' ', 'T', ' ', 'T', ' ', ' ', '#', '#', '#', '#', '#', '#', '#', '#'},
                 {'#', ' ', ' ', 'T', 'T', ' ', ' ', '#', ' ', 'T', '#', ' ', ' ', 'T', ' ', ' ', ' ', ' ', 'T', '#', ' ', 'T', ' ', ' ', 'X', 'T', '#'},
                 {'#', ' ', ' ', '#', '#', '#', '#', '#', ' ', ' ', '#', ' ', ' ', '#', '#', '#', '#', ' ', ' ', '#', ' ', ' ', ' ', 'T', '#', '#', '#'},
-                {'#', ' ', 'T', '#', ' ', ' ', ' ', 'T', ' ', ' ', '#', ' ', ' ', '#', 'X', ' ', 'T', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#'},
-                {'#', ' ', ' ', '#', 'X', 'T', ' ', ' ', ' ', ' ', '#', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', '#', ' ', 'T', ' ', '#'},
+                {'#', ' ', 'T', '#', ' ', ' ', ' ', 'T', ' ', ' ', '#', ' ', ' ', '#', 'X', ' ', 'T', ' ', ' ', '#', 'T', ' ', ' ', ' ', ' ', ' ', '#'},
+                {'#', ' ', ' ', '#', 'X', 'T', ' ', ' ', ' ', ' ', '#', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', '#', 'T', 'T', ' ', '#'},
                 {'#', 'T', ' ', '#', '#', ' ', '#', ' ', 'T', '#', '#', ' ', ' ', '#', '#', '#', ' ', ' ', ' ', '#', ' ', ' ', '#', '#', '#', ' ', '#'},
-                {'#', ' ', ' ', ' ', '#', ' ', '#', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', 'T', ' ', 'T', '#', ' ', ' ', 'T', '#', ' ', ' ', '#'},
+                {'#', ' ', ' ', ' ', '#', ' ', '#', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', 'T', ' ', 'T', '#', 'T', ' ', 'T', '#', ' ', ' ', '#'},
                 {'#', ' ', ' ', ' ', '#', '#', '#', '#', '#', '#', ' ', ' ', ' ', ' ', ' ', '#', '#', '#', '#', '#', ' ', ' ', 'T', '#', 'X', ' ', '#'},
-                {'#', ' ', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'T', '#', '#', '#', '#'},
+                {'#', ' ', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'T', 'T', '#', '#', '#', '#'},
                 {'#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'T', ' ', ' ', '#'},
                 {'#', ' ', '#', '#', '#', '#', '#', '#', '#', '#', ' ', ' ', ' ', ' ', ' ', '#', '#', '#', '#', '#', ' ', ' ', ' ', ' ', 'T', ' ', '#'},
                 {'#', ' ', '#', ' ', ' ', ' ', ' ', ' ', 'T', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#', '#', '#', '#', ' ', 'T', ' ', '#'},
-                {'#', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#', ' ', ' ', '#', ' ', '#', '#', '#'},
+                {'#', ' ', '#', ' ', 'T', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', '#', ' ', ' ', '#', ' ', '#', '#', '#'},
                 {'#', 'X', '#', ' ', ' ', 'T', 'T', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', '#', 'T', ' ', 'T', ' ', 'T', '#', '#', ' ', ' ', ' ', '#'},
-                {'#', '#', '#', ' ', ' ', '#', ' ', ' ', 'T', '#', '#', ' ', ' ', '#', '#', '#', 'T', ' ', ' ', ' ', ' ', ' ', '#', ' ', 'T', ' ', '#'},
-                {'#', ' ', ' ', ' ', ' ', '#', 'T', ' ', ' ', 'X', '#', ' ', ' ', '#', 'X', ' ', ' ', ' ', 'T', '#', ' ', ' ', '#', '#', '#', ' ', '#'},
+                {'#', '#', '#', 'T', ' ', '#', ' ', ' ', 'T', '#', '#', ' ', ' ', '#', '#', '#', 'T', ' ', ' ', ' ', ' ', ' ', '#', ' ', 'T', ' ', '#'},
+                {'#', ' ', 'T', ' ', ' ', '#', 'T', ' ', ' ', 'X', '#', ' ', ' ', '#', 'X', ' ', ' ', ' ', 'T', '#', ' ', ' ', '#', '#', '#', ' ', '#'},
                 {'#', '#', '#', ' ', ' ', '#', ' ', 'T', ' ', 'T', '#', ' ', ' ', '#', '#', '#', '#', '#', '#', '#', ' ', ' ', '#', 'X', 'T', ' ', '#'},
                 {'#', 'X', ' ', ' ', ' ', '#', '#', '#', '#', '#', '#', ' ', ' ', ' ', ' ', 'T', ' ', ' ', ' ', 'T', ' ', ' ', '#', ' ', ' ', ' ', '#'},
                 {'#', 'T', ' ', ' ', ' ', ' ', 'T', ' ', ' ', ' ', 'T', ' ', ' ', ' ', ' ', ' ', ' ', 'T', ' ', ' ', ' ', ' ', '#', ' ', '#', '#', '#'},
@@ -73,7 +74,7 @@ namespace Treasure_Hunter
 
             Console.CursorVisible = false;
 
-            if (!SetPlayerOnMap(map, ref posX, ref posY)) isOpen = false;
+            if (!SetPlayerOnMap(map, ref posX, ref posY, out startPosX, out startPosY)) isOpen = false;
 
             if (!isOpen)
             {
@@ -86,8 +87,6 @@ namespace Treasure_Hunter
                 DrawBar(map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0), maxHealthOfPlayer, healthOfPlayer, nameOfBar: "Health");
                 Console.SetCursorPosition(posX, posY);
                 Console.Write(playerSymbol);
-                Console.SetCursorPosition(0, 26);
-                Console.Write(healthOfPlayer);
                 if (MoveOfPlayer(map, ref posX, ref posY))
                 {
                     Console.SetCursorPosition(posY, posX);
@@ -95,6 +94,11 @@ namespace Treasure_Hunter
                     if (mapWithTraps[posY, posX] == 'T')
                     {
                         ExploudTrap(map, mapWithTraps, posX, posY, ref healthOfPlayer);
+                        if (healthOfPlayer <= 0)
+                        {
+                            ReloadGameLoop(startPosX, startPosY, ref posX, ref posY);
+                            healthOfPlayer = maxHealthOfPlayer;
+                        }
                     }
                 }
                 Console.Clear();
@@ -118,28 +122,38 @@ namespace Treasure_Hunter
             }
         }
 
-        static bool SetPlayerOnMap(char[,] map, ref int posX, ref int posY)
+        static bool SetPlayerOnMap(char[,] map, ref int posX, ref int posY, out int startPosX, out int startPosY)
         {
             if ((posX > map.GetUpperBound(map.Rank - 1) || posY > map.GetUpperBound(0)) ||
-                (posX <= 0 || posY <= 0)) return false;
+                (posX <= 0 || posY <= 0))
+            {
+                startPosX = 0;
+                startPosY = 0;
+                return false;
+            }
+
 
             if (map[posY, posX] != '#')
             {
+                startPosX = posX;
+                startPosY = posY;
                 return true;
             }
 
             if (posX < map.GetUpperBound(map.Rank - 1))
             {
                 posX++;
-                return SetPlayerOnMap(map, ref posX, ref posY);
+                return SetPlayerOnMap(map, ref posX, ref posY, out startPosX, out startPosY);
 
             }
             else if (posY < map.GetUpperBound(0))
             {
                 posY++;
-                return SetPlayerOnMap(map, ref posX, ref posY);
+                return SetPlayerOnMap(map, ref posX, ref posY, out startPosX, out startPosY);
             } else
             {
+                startPosX = 0;
+                startPosY = 0;
                 return false;
             }
 
@@ -201,6 +215,13 @@ namespace Treasure_Hunter
             }
             Console.BackgroundColor = defaultColor;
             Console.Write(']');
+        }
+
+        static void ReloadGameLoop(int startPosX, int startPosY, ref int posX, ref int posY)
+        {
+            posX = startPosX;
+            posY = startPosY;
+            Console.Beep(800, 800);
         }
     }
 }
