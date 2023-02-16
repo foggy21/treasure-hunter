@@ -9,15 +9,7 @@ namespace Treasure_Hunter
 {
     internal class Program
     {
-        static void Main(string[] args)
-        {
-            const int maxHealthOfPlayer = 5;
-            const char playerSymbol = '@';
-            bool isOpen = true;
-            int startPosX, startPosY; // Start position of player.
-            int posX = 1, posY = 1; // Position of player.
-            int healthOfPlayer = maxHealthOfPlayer;
-            char[,] mapWithTraps = new char[24, 27]
+        static char[,] mapWithTraps = new char[24, 27]
             {
                 {'#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
                 {'#', '#', ' ', 'T', 'T', ' ', ' ', '#', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'T', ' ', ' ', ' ', '#'},
@@ -44,8 +36,9 @@ namespace Treasure_Hunter
                 {'#', ' ', ' ', ' ', 'T', ' ', ' ', ' ', 'T', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'T', ' ', ' ', '#', ' ', ' ', 'X', '#'},
                 {'#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
             };
-            char[,] map = new char[24, 27]
-            {
+
+        static char[,] map = new char[24, 27]
+        {
                 {'#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
                 {'#', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#'},
                 {'#', '#', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X', '#'},
@@ -70,11 +63,28 @@ namespace Treasure_Hunter
                 {'#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', '#', '#', '#'},
                 {'#', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '#', ' ', ' ', 'X', '#'},
                 {'#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
-            };
+        };
+
+        const int maxHealthOfPlayer = 5;
+        const char player = '@';
+        const char treasure = 'X';
+        const char trap = 'T';
+        const char wall = '#';
+        const char ground = ' ';
+        const char explodedTrap = '*';
+        static int startPosX, startPosY; // Start position of player.
+        static void Main(string[] args)
+        {
+            bool isOpen = true;
+            int posX = 1, posY = 1; // Position of player.
+            int healthOfPlayer = maxHealthOfPlayer;
+            int lengthOfBag = 1;
+            char[] bag = new char[lengthOfBag];
+            
 
             Console.CursorVisible = false;
 
-            if (!SetPlayerOnMap(map, ref posX, ref posY, out startPosX, out startPosY)) isOpen = false;
+            if (!SetPlayerOnMap(ref posX, ref posY, out startPosX, out startPosY)) isOpen = false;
 
             if (!isOpen)
             {
@@ -83,22 +93,27 @@ namespace Treasure_Hunter
 
             while (isOpen)
             {
-                DrawMap(map);
+                DrawMap();
                 DrawBar(map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0), maxHealthOfPlayer, healthOfPlayer, nameOfBar: "Health");
+                DrawBag(bag, map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0) + 1);
                 Console.SetCursorPosition(posX, posY);
-                Console.Write(playerSymbol);
-                if (MoveOfPlayer(map, ref posX, ref posY))
+                Console.Write(player);
+                if (MoveOfPlayer(ref posX, ref posY))
                 {
                     Console.SetCursorPosition(posY, posX);
-                    Console.Write(playerSymbol);
-                    if (mapWithTraps[posY, posX] == 'T')
+                    Console.Write(player);
+                    if (mapWithTraps[posY, posX] == trap)
                     {
                         ExploudTrap(map, mapWithTraps, posX, posY, ref healthOfPlayer);
                         if (healthOfPlayer <= 0)
                         {
-                            ReloadGameLoop(startPosX, startPosY, ref posX, ref posY);
+                            ReloadGameLoop(ref posX, ref posY);
                             healthOfPlayer = maxHealthOfPlayer;
                         }
+                    }
+                    if (map[posY, posX] == treasure)
+                    {
+                        bag = GetTreasure(bag, ref lengthOfBag, posX, posY);
                     }
                 }
                 Console.Clear();
@@ -106,7 +121,7 @@ namespace Treasure_Hunter
         }
 
 
-        static void DrawMap(char[,] map)
+        static void DrawMap()
         {
             Console.SetCursorPosition(0, 0);
             int lengthOfColumns = map.GetUpperBound(map.Rank - 1) + 1;
@@ -122,7 +137,7 @@ namespace Treasure_Hunter
             }
         }
 
-        static bool SetPlayerOnMap(char[,] map, ref int posX, ref int posY, out int startPosX, out int startPosY)
+        static bool SetPlayerOnMap(ref int posX, ref int posY, out int startPosX, out int startPosY)
         {
             if ((posX > map.GetUpperBound(map.Rank - 1) || posY > map.GetUpperBound(0)) ||
                 (posX <= 0 || posY <= 0))
@@ -133,7 +148,7 @@ namespace Treasure_Hunter
             }
 
 
-            if (map[posY, posX] != '#')
+            if (map[posY, posX] != wall)
             {
                 startPosX = posX;
                 startPosY = posY;
@@ -143,13 +158,13 @@ namespace Treasure_Hunter
             if (posX < map.GetUpperBound(map.Rank - 1))
             {
                 posX++;
-                return SetPlayerOnMap(map, ref posX, ref posY, out startPosX, out startPosY);
+                return SetPlayerOnMap(ref posX, ref posY, out startPosX, out startPosY);
 
             }
             else if (posY < map.GetUpperBound(0))
             {
                 posY++;
-                return SetPlayerOnMap(map, ref posX, ref posY, out startPosX, out startPosY);
+                return SetPlayerOnMap(ref posX, ref posY, out startPosX, out startPosY);
             } else
             {
                 startPosX = 0;
@@ -159,7 +174,7 @@ namespace Treasure_Hunter
 
         }
 
-        static bool MoveOfPlayer(char[,] map, ref int posX, ref int posY)
+        static bool MoveOfPlayer(ref int posX, ref int posY)
         {
             ConsoleKey userInput = Console.ReadKey().Key;
             int copyPosX = posX, copyPosY = posY;
@@ -179,7 +194,7 @@ namespace Treasure_Hunter
                     break;
             }
 
-            if (map[copyPosY, copyPosX] != '#')
+            if (map[copyPosY, copyPosX] != wall)
             {
                 posX = copyPosX;
                 posY = copyPosY;
@@ -190,8 +205,8 @@ namespace Treasure_Hunter
         static void ExploudTrap(char[,] map, char[,] mapWithTraps, int posX, int posY, ref int health)
         {
             Console.Beep();
-            map[posY, posX] = '*';
-            mapWithTraps[posY, posX] = ' ';
+            map[posY, posX] = explodedTrap;
+            mapWithTraps[posY, posX] = ground;
             health--;
         }
 
@@ -217,11 +232,42 @@ namespace Treasure_Hunter
             Console.Write(']');
         }
 
-        static void ReloadGameLoop(int startPosX, int startPosY, ref int posX, ref int posY)
+        static void DrawBag(char[] bag, int posX, int posY, string nameOfBag = "Your bag", ConsoleColor color = ConsoleColor.Magenta)
+        {
+            ConsoleColor defaultColor = Console.ForegroundColor;
+            Console.SetCursorPosition(posX, posY);
+            Console.Write($" {nameOfBag}: [");
+            Console.ForegroundColor = color;
+            foreach (char item in bag)
+            {
+                Console.Write(item);
+            }
+            Console.ForegroundColor = defaultColor;
+            Console.Write(']');
+        }
+
+        static void ReloadGameLoop(ref int posX, ref int posY)
         {
             posX = startPosX;
             posY = startPosY;
             Console.Beep(800, 800);
+        }
+
+        static char[] GetTreasure(char[] bag, ref int lengthOfBag, int posX, int posY)
+        {
+            bag[lengthOfBag - 1] = map[posY, posX];
+            map[posY, posX] = ground;
+
+            char[] expendedBag = new char[lengthOfBag+1];
+
+            for (int i = 0; i < lengthOfBag; i++)
+            {
+                expendedBag[i] = bag[i];
+            }
+
+            ++lengthOfBag;
+
+            return expendedBag;
         }
     }
 }
