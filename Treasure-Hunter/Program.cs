@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Treasure_Hunter
@@ -65,6 +66,7 @@ namespace Treasure_Hunter
                 {'#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#', '#'},
         };
 
+        const int maxCountOfTries = 3;
         const int maxHealthOfPlayer = 5;
         const char player = '@';
         const char treasure = 'X';
@@ -78,9 +80,10 @@ namespace Treasure_Hunter
             bool isOpen = true;
             int posX = 1, posY = 1; // Position of player.
             int healthOfPlayer = maxHealthOfPlayer;
+            int countOfTries = maxCountOfTries;
+            int countOfTreasure = 0;
             int lengthOfBag = 1;
             char[] bag = new char[lengthOfBag];
-            
 
             Console.CursorVisible = false;
 
@@ -90,30 +93,44 @@ namespace Treasure_Hunter
             {
                 Console.Write("Невозможно найти место для появление игрока. Переделайте карту\n");
             }
+            else
+            {
+                countOfTreasure = GetCountOfTreasure();
+            }
 
             while (isOpen)
             {
                 DrawMap();
                 DrawBar(map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0), maxHealthOfPlayer, healthOfPlayer, nameOfBar: "Health");
                 DrawBag(bag, map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0) + 1);
-                Console.SetCursorPosition(posX, posY);
-                Console.Write(player);
+                DrawBar(map.GetUpperBound(map.Rank - 1) + 1, map.GetLowerBound(0) + 2, maxCountOfTries, countOfTries, nameOfBar: "Count Of Tries", color: ConsoleColor.Green);
+                DrawPlayer(posX, posY);
                 if (MoveOfPlayer(ref posX, ref posY))
                 {
-                    Console.SetCursorPosition(posY, posX);
-                    Console.Write(player);
                     if (mapWithTraps[posY, posX] == trap)
                     {
-                        ExploudTrap(map, mapWithTraps, posX, posY, ref healthOfPlayer);
+                        ExploudTrap(posX, posY, ref healthOfPlayer);
                         if (healthOfPlayer <= 0)
                         {
-                            ReloadGameLoop(ref posX, ref posY);
-                            healthOfPlayer = maxHealthOfPlayer;
+                            ReloadGameLoop(ref posX, ref posY, ref countOfTries);
+                            if (countOfTries <= 0)
+                            {
+                                ExitGame(ref isOpen, "Game Over", ConsoleColor.Red);
+                            }
+                            else
+                            {
+                                healthOfPlayer = maxHealthOfPlayer;
+                            }
                         }
                     }
                     if (map[posY, posX] == treasure)
                     {
                         bag = GetTreasure(bag, ref lengthOfBag, posX, posY);
+                        if (--countOfTreasure <= 0)
+                        {
+                            ExitGame(ref isOpen, text: "WIN", ConsoleColor.Green);
+                        }
+
                     }
                 }
                 Console.Clear();
@@ -135,6 +152,12 @@ namespace Treasure_Hunter
                     iterator = 0;
                 }
             }
+        }
+
+        static void DrawPlayer(int posX, int posY)
+        {
+            Console.SetCursorPosition(posX, posY);
+            Console.Write(player);
         }
 
         static bool SetPlayerOnMap(ref int posX, ref int posY, out int startPosX, out int startPosY)
@@ -202,12 +225,22 @@ namespace Treasure_Hunter
             }
             return false;
         }
-        static void ExploudTrap(char[,] map, char[,] mapWithTraps, int posX, int posY, ref int health)
+        static void ExploudTrap(int posX, int posY, ref int health)
         {
             Console.Beep();
             map[posY, posX] = explodedTrap;
             mapWithTraps[posY, posX] = ground;
             health--;
+        }
+
+        static int GetCountOfTreasure()
+        {
+            int countOfTreasure = 0;
+            foreach(char item in map)
+            {
+                if (item == treasure) ++countOfTreasure;
+            }
+            return countOfTreasure;
         }
 
         static void DrawBar(int posX, int posY, int maxStatictic, int statictic, string nameOfBar = "", ConsoleColor color = ConsoleColor.Red)
@@ -246,8 +279,9 @@ namespace Treasure_Hunter
             Console.Write(']');
         }
 
-        static void ReloadGameLoop(ref int posX, ref int posY)
+        static void ReloadGameLoop(ref int posX, ref int posY, ref int countOfTries)
         {
+            --countOfTries;
             posX = startPosX;
             posY = startPosY;
             Console.Beep(800, 800);
@@ -268,6 +302,19 @@ namespace Treasure_Hunter
             ++lengthOfBag;
 
             return expendedBag;
+        }
+
+        static void ExitGame(ref bool isOpen, string text, ConsoleColor textColor)
+        {
+            Console.Clear();
+            ConsoleColor defaultColor = Console.ForegroundColor;
+            Console.SetCursorPosition(Console.WindowWidth / 2, Console.WindowHeight / 2);
+            Console.CursorSize = 40;
+            Console.ForegroundColor = textColor;
+            Console.Write(text);
+            Thread.Sleep(2000);
+            Console.ForegroundColor = defaultColor;
+            isOpen = false;
         }
     }
 }
