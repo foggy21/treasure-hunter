@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Treasure_Hunter
 {
@@ -87,7 +82,7 @@ namespace Treasure_Hunter
 
             Console.CursorVisible = false;
 
-            if (!SetPlayerOnMap(ref posX, ref posY, out startPosX, out startPosY)) isOpen = false;
+            if (!SetPlayerOnMap(ref posX, ref posY)) isOpen = false;
 
             if (!isOpen)
             {
@@ -137,7 +132,6 @@ namespace Treasure_Hunter
             }
         }
 
-
         static void DrawMap()
         {
             Console.SetCursorPosition(0, 0);
@@ -160,16 +154,13 @@ namespace Treasure_Hunter
             Console.Write(player);
         }
 
-        static bool SetPlayerOnMap(ref int posX, ref int posY, out int startPosX, out int startPosY)
+        static bool SetPlayerOnMap(ref int posX, ref int posY)
         {
             if ((posX > map.GetUpperBound(map.Rank - 1) || posY > map.GetUpperBound(0)) ||
                 (posX <= 0 || posY <= 0))
             {
-                startPosX = 0;
-                startPosY = 0;
                 return false;
             }
-
 
             if (map[posY, posX] != wall)
             {
@@ -181,17 +172,16 @@ namespace Treasure_Hunter
             if (posX < map.GetUpperBound(map.Rank - 1))
             {
                 posX++;
-                return SetPlayerOnMap(ref posX, ref posY, out startPosX, out startPosY);
+                return SetPlayerOnMap(ref posX, ref posY);
 
             }
             else if (posY < map.GetUpperBound(0))
             {
                 posY++;
-                return SetPlayerOnMap(ref posX, ref posY, out startPosX, out startPosY);
-            } else
+                return SetPlayerOnMap(ref posX, ref posY);
+            } 
+            else
             {
-                startPosX = 0;
-                startPosY = 0;
                 return false;
             }
 
@@ -309,7 +299,6 @@ namespace Treasure_Hunter
             Console.Clear();
             ConsoleColor defaultColor = Console.ForegroundColor;
             Console.SetCursorPosition(Console.WindowWidth / 2, Console.WindowHeight / 2);
-            Console.CursorSize = 40;
             Console.ForegroundColor = textColor;
             Console.Write(text);
             Thread.Sleep(2000);
