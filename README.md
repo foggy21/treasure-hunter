@@ -17,10 +17,10 @@
 ## Геймплей
 <br/>
 
-### [Gameplay №1](../../Videos/gameplay1.mp4)
+### ![Gameplay №1](https://user-images.githubusercontent.com/46190973/220566150-aff9610a-fe16-4b0c-a0d8-8417b923c10d.gif)
 <br/>
 
-### [Gameplay №2](../../Videos/gameplay2.mp4)
+### ![Gameplay №2](https://user-images.githubusercontent.com/46190973/220566278-994747d3-16d9-4445-8057-a64db94a8c45.gif)
 <br/>
 
 # Карта
