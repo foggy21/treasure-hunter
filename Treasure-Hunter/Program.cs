@@ -73,7 +73,7 @@ namespace Treasure_Hunter
         static void Main(string[] args)
         {
             bool isOpen = true;
-            int posX = 1, posY = 1; // Position of player.
+            int posX = 1, posY = 1; // Center start for set player.
             int healthOfPlayer = maxHealthOfPlayer;
             int countOfTries = maxCountOfTries;
             int countOfTreasure = 0;
@@ -184,7 +184,6 @@ namespace Treasure_Hunter
             {
                 return false;
             }
-
         }
 
         static bool MoveOfPlayer(ref int posX, ref int posY)
